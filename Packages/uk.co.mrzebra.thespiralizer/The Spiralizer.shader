@@ -13,7 +13,7 @@
         [HideInInspector] _RenderQueue("", Float) = 123
 
         // Read from the Z-Buffer.
-        [Enum(Normal, 4, Always On Top, 8)] _ZTest("Depth Test", Float) = 1
+        [Enum(Normal, 4, Always On Top, 8)] _ZTest("Depth Test", Float) = 4
 
         // The overlay texture.
         [Space] [Toggle(TEXTURE_ENABLED)] _TextureEnabled("Enable Texture", Float) = 0
