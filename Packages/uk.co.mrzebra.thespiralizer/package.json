@@ -1,0 +1,13 @@
+{
+  "name": "uk.co.mrzebra.thespiralizer",
+  "displayName": "The Spiralizer",
+  "version": "1.0.1",
+  "unity": "2022.3",
+  "description": "A customizable spiral shader",
+  "vrchatVersion": "2022.1.1",
+  "author": {
+    "name": "Zebra North",
+    "email": "mrzebra@mrzebra.co.uk",
+    "url": "https://mrzebra.co.uk/"
+  }
+}
