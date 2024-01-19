@@ -1,4 +1,4 @@
-![The Spiralizer](https://zebranorth.github.io/TheSpiralizer/banner.png)
+![The Spiralizer](./Website/banner.png)
 
 # Installation for VRChat using VCC
 
