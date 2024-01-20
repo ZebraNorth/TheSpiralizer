@@ -22,14 +22,22 @@ public class TheSpiralizer : ShaderGUI
                 continue;
             }
 
-            if (property.name == "_MainTex" && textureEnabled == 0)
+            if (textureEnabled == 0)
             {
-                continue;
-            }
-
-            if (property.name == "imageOpacity" && textureEnabled == 0)
-            {
-                continue;
+                if (
+                    property.name == "_MainTex"
+                    || property.name == "imageScale"
+                    || property.name == "imageOpacity"
+                    || property.name == "imageTop"
+                    || property.name == "imageLeft"
+                    || property.name == "imageBottom"
+                    || property.name == "imageRight"
+                    || property.name == "imageX"
+                    || property.name == "imageY"
+                   )
+                {
+                    continue;
+                }
             }
 
             if (property.name == "noiseOpacity" && noiseEnabled == 0)

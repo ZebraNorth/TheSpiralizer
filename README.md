@@ -36,17 +36,32 @@ The checkboxes enable features at compile time, so turn off any features you are
 
 Enable overlaying an image on top of the spiral.
 
-### Texture
+### Image Texture
 
 The image to overlay.
 
-##### Tiling
+#### Image Scale
 
-The horizontal and vertical size.
+A multiplier for the size of the image.
 
-#### Offset
+#### Image Crop: Left, Right, Bottom, Top
 
-The horziontal and veritcal position.
+Crop the image down to the area between (Left, Bottom) and (Right, Top).
+
+You can use these parameters in conjunction with an animation to display multiple images in sequence.
+
+For example, you might divide your texture into four areas and address them as follows:
+
+- `A` is at Left = 0.0, Right = 0.5, Bottom = 0.5, Top = 1.0.
+- `B` is at Left = 0.5, Right = 1.0, Bottom = 0.5, Top = 1.0.
+- `C` is at Left = 0.0, Right = 0.5, Bottom = 0.0, Top = 0.5.
+- `D` is at Left = 0.5, Right = 1.0, Bottom = 0.0, Top = 0.5.
+
+![Texture Crop Example](./example.png)
+
+You can divide your image into as many pieces as you like.
+
+If you wish to use only a single image then leave these fields at their default values of Left = 0, Right = 1, Bottom = 0, Top = 1.
 
 ### Image Opacity
 

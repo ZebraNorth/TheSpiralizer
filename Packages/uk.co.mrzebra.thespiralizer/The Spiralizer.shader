@@ -17,10 +17,17 @@
 
         // The overlay texture.
         [Space] [Toggle(TEXTURE_ENABLED)] _TextureEnabled("Enable Texture", Float) = 0
-        _MainTex ("Texture", 2D) = "white" {}
+        [NoScaleOffset] _MainTex ("Image Texture", 2D) = "white" {}
+        imageScale("Image Scale", Range(0, 1)) = 1
+        imageLeft("Image Crop Left", Range(0, 1)) = 0
+        imageRight("Image Crop Right", Range(0, 1)) = 1
+        imageBottom("Image Crop Bottom", Range(0, 1)) = 0
+        imageTop("Image Crop Top", Range(0, 1)) = 1
+        imageX("Image X", Range(-1, 1)) = 0
+        imageY("Image Y", Range(-1, 1)) = 0
 
         // The opacity of the image.
-        imageOpacity("Image Opacity", Range(0, 1)) = 0.1
+        imageOpacity("Image Opacity", Range(0, 1)) = 1
 
         // How many arms the spiral should have.
         [Space] arms("Arms", Float) = 1
@@ -99,9 +106,6 @@
             struct v2f
             {
                 float2 uv : TEXCOORD0;
-                #if TEXTURE_ENABLED
-                    float2 imageUv : TEXCOORD1;
-                #endif
                 UNITY_FOG_COORDS(2)
                 float4 vertex : SV_POSITION;
             };
@@ -121,7 +125,14 @@
             float vignetteOpacity;
             float4 vignetteColour;
             float spiralOpacity;
+            float imageScale;
+            float imageTop;
+            float imageLeft;
+            float imageBottom;
+            float imageRight;
             float imageOpacity;
+            float imageX;
+            float imageY;
             float4 centre;
 
             v2f vert (appdata v)
@@ -129,9 +140,6 @@
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
-                #if TEXTURE_ENABLED
-                    o.imageUv = TRANSFORM_TEX(v.uv, _MainTex);
-                #endif
                 UNITY_TRANSFER_FOG(o, o.vertex);
 
                 return o;
@@ -296,13 +304,8 @@
             fixed4 frag(v2f i) : SV_Target
             {
                 // Normalise so that x is in the range -1 to +1.
-                float2 originalUv = i.uv * 2.0 - 1.0;
-                originalUv *= centre.zw;
-                originalUv += centre.xy;
-
+                float2 uv = (i.uv * 2.0 - 1.0) * centre.zw + centre.xy;
                 float iTime = _Time.z;
-
-                float2 uv = originalUv;
 
                 // Calculate how much rotation there should be at the current UV.
                 float rotation = 1.0 - pow(sphericalGradient(uv), lensing) * tightness + iTime * rotationSpeed;
@@ -317,46 +320,36 @@
                 float4 spiral = lerp(backgroundColour, foregroundColour, value);
                 spiral.a = spiralOpacity;
 
-                #if NOISE_ENABLED
-                    // Generate static noise.
-                    float4 noise = frac(rand(floor((uv + mod(floor(iTime * 23.0), 10.0)) * 400.0 * noiseScale)));
-                    noise.a = noiseOpacity;
-                #endif
-
-                // Generate the image.
-                #if TEXTURE_ENABLED
-                    float4 image = tex2D(_MainTex, i.imageUv);
-
-                    // Clip around the image.
-                    if (i.imageUv.x < 0 || i.imageUv.x > 1.0 || i.imageUv.y < 0 || i.imageUv.y > 1.0)
-                    image.a = 0;
-                    else
-                    image.a *= imageOpacity;
-                #endif
-
-                #if VIGNETTE_ENABLED
-                    // Generate the vignette.
-                    float4 vignette = 0.0;
-                    //vignette.a = smoothstep(0.5, 1, length(originalUv) * vignetteOpacity);
-                #endif
-
                 // Mix to the screen.
                 fixed4 output = spiral;
 
                 #if NOISE_ENABLED
+                    // Generate static noise.
+                    float4 noise = frac(rand(floor((uv + mod(floor(iTime * 23.0), 10.0)) * 400.0 * noiseScale)));
+                    noise.a = noiseOpacity;
                     output = over(noise, output);
                 #endif
 
                 #if TEXTURE_ENABLED
-                    output = over(image, output);
+                    if (imageScale != 0) {
+                        float2 sourceCentre = float2(imageLeft + imageRight, imageBottom + imageTop) / 2;
+                        float2 position = float2(imageX, imageY);
+                        float2 tuv = (i.uv - 0.5 - position) / imageScale + sourceCentre;
+
+                        // Clip around the image.
+                        if (tuv.x >= imageLeft && tuv.x < imageRight && tuv.y >= imageBottom && tuv.y < imageTop) {
+                            float4 image = tex2D(_MainTex, tuv);
+                            image.a *= imageOpacity;
+                            output = over(image, output);
+                        }
+                    }
                 #endif
 
                 #if VIGNETTE_ENABLED
-                    //output = over(vignette, output);
                     #if _BLENDMODE_OPAQUE
-                        output = lerp(output, vignetteColour, smoothstep(0.5, 1, length(originalUv) * vignetteOpacity));
+                        output = lerp(output, vignetteColour, smoothstep(0.5, 1, length(uv) * vignetteOpacity));
                     #else
-                        output.a *= 1.0 - smoothstep(0.5, 1, length(originalUv) * vignetteOpacity);
+                        output.a *= 1.0 - smoothstep(0.5, 1, length(uv) * vignetteOpacity);
                     #endif
                 #endif
 
