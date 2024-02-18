@@ -65,6 +65,12 @@
         [Space] [Toggle(VIGNETTE_ENABLED)] _VignetteEnabled("Enable Vignette", Float) = 0
         vignetteOpacity("Vignette Opacity", Range(0, 1)) = 0.1
         vignetteColour("Vignette Colour", Color) = (1.0, 1.0, 1.0, 1.0)
+
+        // The size of the central mask.
+        [Space] [Toggle(MASK_ENABLED)] _MaskEnabled("Enable Mask", Float) = 0
+        maskSize("Mask Size", Range(0, 1)) = 0.1
+        maskSharpness("Mask Sharpness", Range(0, 1)) = 0.5
+        maskColour("Mask Colour", Color) = (1.0, 1.0, 1.0, 1.0)
     }
 
     SubShader
@@ -92,6 +98,7 @@
             #pragma shader_feature_local TEXTURE_ENABLED
             #pragma shader_feature_local NOISE_ENABLED
             #pragma shader_feature_local VIGNETTE_ENABLED
+            #pragma shader_feature_local MASK_ENABLED
 
             #include "UnityCG.cginc"
 
@@ -134,6 +141,9 @@
             float imageX;
             float imageY;
             float4 centre;
+            float maskSize;
+            float maskSharpness;
+            fixed4 maskColour;
 
             v2f vert (appdata v)
             {
@@ -346,10 +356,23 @@
                 #endif
 
                 #if VIGNETTE_ENABLED
+                    float vignetteFactor = smoothstep(0.5, 1, length(uv) * vignetteOpacity);
+
                     #if _BLENDMODE_OPAQUE
-                        output = lerp(output, vignetteColour, smoothstep(0.5, 1, length(uv) * vignetteOpacity));
+                        output = lerp(output, vignetteColour, vignetteFactor);
                     #else
-                        output.a *= 1.0 - smoothstep(0.5, 1, length(uv) * vignetteOpacity);
+                        output.a *= 1.0 - vignetteFactor;
+                    #endif
+                #endif
+
+                #if MASK_ENABLED
+                    float maskBlur = 1.0 - maskSharpness;
+                    float maskFactor = smoothstep((maskSize * (1 + maskBlur) - maskBlur) * 1.4149, (maskSize * (1 + maskBlur)) * 1.415, length(uv));
+
+                    #if _BLENDMODE_OPAQUE
+                        output = lerp(maskColour, output, maskFactor);
+                    #else
+                        output.a *= maskFactor;
                     #endif
                 #endif
 

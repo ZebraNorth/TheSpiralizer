@@ -14,6 +14,7 @@ public class TheSpiralizer : ShaderGUI
         var textureEnabled = FindProperty("_TextureEnabled", properties).floatValue;
         var noiseEnabled = FindProperty("_NoiseEnabled", properties).floatValue;
         var vignetteEnabled = FindProperty("_VignetteEnabled", properties).floatValue;
+        var maskEnabled = FindProperty("_MaskEnabled", properties).floatValue;
 
         foreach (MaterialProperty property in properties)
         {
@@ -56,6 +57,21 @@ public class TheSpiralizer : ShaderGUI
             }
 
             if (property.name == "vignetteColour" && (vignetteEnabled == 0 || blendMode != 0))
+            {
+                continue;
+            }
+
+            if (property.name == "maskSize" && maskEnabled == 0)
+            {
+                continue;
+            }
+
+            if (property.name == "maskSharpness" && maskEnabled == 0)
+            {
+                continue;
+            }
+
+            if (property.name == "maskColour" && (maskEnabled == 0 || blendMode != 0))
             {
                 continue;
             }
